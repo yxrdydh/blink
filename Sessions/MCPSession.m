@@ -368,7 +368,6 @@ void completion(const char *command, linenoiseCompletions *lc) {
     [self setTitle]; // Temporary, until the apps restore the right state.
     [_device setRawMode:NO];
   }
-  ios_closeSession((__bridge void*)self);
   [self out:"Bye!"];
 
   return 0;
@@ -600,6 +599,8 @@ void completion(const char *command, linenoiseCompletions *lc) {
   if (_stream.in) {
     fclose(_stream.in);
   }
+  // Instruct ios_system to release the data for this shell:
+  ios_closeSession((__bridge void*)self);
 }
 
 - (void)suspend
