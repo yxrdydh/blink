@@ -296,6 +296,7 @@ void completion(const char *command, linenoiseCompletions *lc) {
 
   NSString *docsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
   initializeEnvironment(); // initialize environment variables for iOS system
+  ios_setMiniRoot(docsPath); // set up miniRoot for iOS system
   NSString *SSL_CERT_FILE = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"cacert.pem"];
   setenv("SSL_CERT_FILE", SSL_CERT_FILE.UTF8String, 1); // force rewrite of value
   replaceCommand(@"curl", @"curl_static_main", true); // replace curl in ios_system with our own, accessing Blink keys.
@@ -367,7 +368,7 @@ void completion(const char *command, linenoiseCompletions *lc) {
     [self setTitle]; // Temporary, until the apps restore the right state.
     [_device setRawMode:NO];
   }
-  ios_closeSession(_stream.out);
+  ios_closeSession((__bridge void*)self);
   [self out:"Bye!"];
 
   return 0;
