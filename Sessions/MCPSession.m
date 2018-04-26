@@ -50,8 +50,11 @@
 #import "MusicManager.h"
 #import "BKUserConfigurationManager.h"
 
+
 // from ios_system:
+
 #include "ios_system/ios_system.h"
+
 
 #define MCP_MAX_LINE 4096
 #define MCP_MAX_HISTORY 1000
@@ -190,7 +193,52 @@ void initializeCommandListForCompletion() {
   commandList = [combinedCommands sortedArrayUsingSelector:@selector(compare:)];
 }
 
-void completion(const char *command, linenoiseCompletions *lc) {
+void completion(const char *line, linenoiseCompletions *lc) {
+  NSString* prefix = [NSString stringWithUTF8String:line];
+  NSArray *commands = commandsByPrefix(prefix);
+  
+  if (commands.count > 0) {
+    NSArray * advancedCompletion = @[@"ssh", @"mosh", @"theme", @"music", @"history"];
+    for (NSString * cmd in commands) {
+      if ([advancedCompletion indexOfObject:cmd] != NSNotFound) {
+        linenoiseAddCompletion(lc, [cmd stringByAppendingString:@" "].UTF8String);
+      } else {
+        linenoiseAddCompletion(lc, cmd.UTF8String);
+      }
+    }
+    system_completion(line, lc);
+    return;
+  }
+  
+  NSArray *cmdAndArgs = splitCommandAndArgs(prefix);
+  NSString *cmd = cmdAndArgs[0];
+  NSString *args = cmdAndArgs[1];
+  NSArray *completions = @[];
+  
+  if ([args isEqualToString:@""]) {
+    system_completion(line, lc);
+    return;
+  }
+  
+  if ([cmd isEqualToString:@"ssh"] || [cmd isEqualToString:@"mosh"]) {
+    completions = hostsByPrefix(args);
+  } else if ([cmd isEqualToString:@"music"]) {
+    completions = musicActionsByPrefix(args);
+  } else if ([cmd isEqualToString:@"theme"]) {
+    completions = themesByPrefix(args);
+  } else if ([cmd isEqualToString:@"history"]) {
+    completions = historyActionsByPrefix(args);
+  }
+  
+  
+  for (NSString *c in completions) {
+    linenoiseAddCompletion(lc, [@[cmd, c] componentsJoinedByString:@" "].UTF8String);
+  }
+  
+  system_completion(line, lc);
+}
+
+void system_completion(const char *command, linenoiseCompletions *lc) {
   // autocomplete command for lineNoise
   // TODO: get current working directory from ios_system
   BOOL isDir;
@@ -284,7 +332,7 @@ void completion(const char *command, linenoiseCompletions *lc) {
 
 - (NSString *)_historyFilePath
 {
-  return [[self _documentsPath] stringByAppendingPathComponent:@"history.txt"];
+  return [[self _documentsPath] stringByAppendingPathComponent:@".blink_history"];
 }
 
 - (int)main:(int)argc argv:(char **)argv args:(char *)args
@@ -298,16 +346,15 @@ void completion(const char *command, linenoiseCompletions *lc) {
   char *line;
   argc = 0;
   argv = nil;
-
-  NSString *docsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
-  sideLoading = false;
+  
+  sideLoading = false; // Turn off extra commands from iOS system
   initializeEnvironment(); // initialize environment variables for iOS system
   NSString *SSL_CERT_FILE = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"cacert.pem"];
   setenv("SSL_CERT_FILE", SSL_CERT_FILE.UTF8String, 1); // force rewrite of value
   replaceCommand(@"curl", @"curl_static_main", true); // replace curl in ios_system with our own, accessing Blink keys.
   ios_setMiniRoot([self _documentsPath]);
   initializeCommandListForCompletion();
-  [[NSFileManager defaultManager] changeCurrentDirectoryPath:docsPath];
+  [[NSFileManager defaultManager] changeCurrentDirectoryPath:[self _documentsPath]];
 
   [_device setRawMode:NO];
 

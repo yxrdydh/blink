@@ -116,7 +116,7 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
   
   _snapshotImageView = [[UIImageView alloc] initWithFrame:self.bounds];
   _snapshotImageView.contentMode = UIViewContentModeTop | UIViewContentModeLeft;
-  _snapshotImageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+  _snapshotImageView.autoresizingMask =  UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
   return self;
 }
@@ -131,20 +131,23 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
   if (@available(iOS 11.0, *)) {
     [_webView takeSnapshotWithConfiguration:nil completionHandler:^(UIImage * _Nullable snapshotImage, NSError * _Nullable error) {
       _snapshotImageView.image = snapshotImage;
-      [_webView removeFromSuperview];
-      [self addSubview:_snapshotImageView];
       _snapshotImageView.frame = self.bounds;
+      [self addSubview:_snapshotImageView];
+      [_webView removeFromSuperview];
     }];
   } else {
-    // Fallback on earlier versions
+    // Blank screen for ios 10?
+    _snapshotImageView.frame = self.bounds;
+    [self addSubview:_snapshotImageView];
+    [_webView removeFromSuperview];
   }
 }
 
 - (void)_didBecomeActive
 {
-  [_snapshotImageView removeFromSuperview];
-  [self addSubview:_webView];
   _webView.frame = self.bounds;
+  [self insertSubview:_webView belowSubview:_snapshotImageView];
+  [_snapshotImageView removeFromSuperview];
 }
 
 - (BOOL)canBecomeFirstResponder {
@@ -384,6 +387,42 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
     [self blur];
   }
 }
+  
+- (NSString *)_menuTitleFromNSURL:(NSURL *)url
+{
+  if (!url) {
+    return @"";
+  }
+  
+  NSString *base = url.host;
+  
+  if (!base) {
+    if ([@"mailto" isEqualToString:url.scheme]) {
+      base = @"Email";
+    } else {
+      base = @"URL";
+    }
+  }
+  
+  if (url.fragment.length > 0 || url.path.length > 0 || url.query.length > 0) {
+    return [base stringByAppendingString:@"…"];
+  }
+  
+  return base;
+}
+  
+- (NSString *)_menuActionTitleFromNSURL:(NSURL *)url
+{
+  if (!url) {
+    return @"Open";
+  }
+
+  if ([@"mailto" isEqualToString:url.scheme]) {
+    return @"Compose";
+  }
+  
+  return @"Open";
+}
 
 - (void)_handleSelectionChange:(NSDictionary *)data
 {
@@ -403,11 +442,13 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
   _detectedLink = [self _detectLinkInSelection:data];
   
   if (_detectedLink) {
-    NSString *host = [_detectedLink host];
-    [items addObject:[[UIMenuItem alloc] initWithTitle:[@"Copy " stringByAppendingString:host]
+    NSString *urlName = [self _menuTitleFromNSURL: _detectedLink];
+    [items addObject:[[UIMenuItem alloc] initWithTitle:[@"Copy " stringByAppendingString:urlName]
                                                 action:@selector(copyLink:)]];
     
-    [items addObject:[[UIMenuItem alloc] initWithTitle:[@"Open " stringByAppendingString:host]
+    NSString *actionTitle = [NSString stringWithFormat:@"%@ %@",
+                             [self _menuActionTitleFromNSURL:_detectedLink], urlName];
+    [items addObject:[[UIMenuItem alloc] initWithTitle:actionTitle
                                                 action:@selector(openLink:)]];
   }
 
@@ -472,12 +513,26 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
   
 - (void)pasteSelection:(id)sender
 {
-  
+  NSString *str = _selectedText;
+  if (str) {
+    [_webView evaluateJavaScript:term_paste(str) completionHandler:nil];
+  }
+  [self cleanSelection];
 }
 
 - (void)copy:(id)sender
 {
   [_webView copy:sender];
+}
+
+- (void)paste:(id)sender
+{
+  NSString *str = [UIPasteboard generalPasteboard].string;
+  if (str) {
+    [_webView evaluateJavaScript:term_paste(str) completionHandler:nil];
+  }
+  
+  [self cleanSelection];
 }
 
 - (NSString *)_detectFontFamilyFromContent:(NSString *)content

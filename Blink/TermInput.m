@@ -73,7 +73,14 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
                 @"\\" : @"\x1C",
                 @"^" : @"\x1E",
                 @"_" : @"\x1F",
-                @"/" : @"\x1F"
+                @"/" : @"\x1F",
+                @"2" : @"\x00",
+                @"3" : @"\x1B",
+                @"4" : @"\x1C",
+                @"5" : @"\x1D",
+                @"6" : @"\x1E",
+                @"7" : @"\x1F",
+                @"8" : @"\x7F"
                 };
   FModifiers = @{
                  @0 : @0,
@@ -222,10 +229,6 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
   NSMutableDictionary *_functionTriggerKeys;
   NSString *_specialFKeysRow;
   NSSet<NSString *> *_imeLangSet;
-  
-  // option + e on iOS lets introduce an accented character, that we override
-  BOOL _disableAccents;
-  BOOL _dismissInput;
 
   NSMutableArray<UIKeyCommand *> *_kbdCommands;
   NSMutableArray<UIKeyCommand *> *_kbdCommandsWithoutAutoRepeat;
@@ -396,65 +399,8 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
   _skipTextStorageDelete = NO;
 }
 
-- (void)textViewDidChange:(UITextView *)textView
-{
-  if (textView.text.length == 0) {
-    _markedText = nil;
-    _skipTextStorageDelete = YES;
-    [self reset];
-    _skipTextStorageDelete = NO;
-    return;
-  }
-  
-  if (!self.markedTextRange) {
-    if (_markedText) {
-      [self _insertText:_markedText];
-      [self reset];
-      _markedText = nil;
-      [_device.view setIme: @"" completionHandler:nil];
-      return;
-    }
-    
-    _skipTextStorageDelete = NO;
-    _markedText = nil;
-    
-    return;
-  }
-
-  NSString *str = [self textInRange:self.markedTextRange];
-  _markedText = str;
-  
-  [_device.view setIme: str
-       completionHandler:^(id data, NSError * _Nullable error) {
-    if (!data) {
-      return;
-    }
-    
-    CGRect rect = CGRectFromString(data[@"markedRect"]);
-
-    CGFloat suggestionsHeight = 44;
-    CGFloat maxY = CGRectGetMaxY(rect);
-    CGFloat minY = CGRectGetMinY(rect);
-    if (maxY - suggestionsHeight < 0) {
-      rect.origin.y = maxY;
-    } else {
-      rect.origin.y = minY - suggestionsHeight;
-    }
-    rect.size.height = 0;
-    self.frame = rect;
-  }];
-}
-
 - (void)_insertText:(NSString *)text
 {
-  if (_disableAccents) {
-    // If the accent switch is on, the next character should remove them.
-    //CFStringTransform((__bridge CFMutableStringRef)mtext, nil, kCFStringTransformStripCombiningMarks, NO);
-    text = [[NSString alloc] initWithData:[text dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES]
-                                 encoding:NSASCIIStringEncoding];
-    _disableAccents = NO;
-  }
-  
   // Discard CAPS on characters when caps are mapped and there is no SW keyboard.
   BOOL capsWithoutSWKeyboard = !self.softwareKB && [self _capsMapped];
   if (capsWithoutSWKeyboard && text.length == 1 && [text characterAtIndex:0] > 0x1F) {
@@ -499,12 +445,47 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
     }
   }
 }
+  
+- (void)setMarkedText:(NSString *)markedText selectedRange:(NSRange)selectedRange
+{
+  [super setMarkedText:markedText selectedRange:selectedRange];
+  _markedText = markedText;
+  [self.device.view setIme: _markedText
+         completionHandler:^(id data, NSError * _Nullable error) {
+     if (!data) {
+       return;
+     }
+     
+     CGRect rect = CGRectFromString(data[@"markedRect"]);
+     
+     CGFloat suggestionsHeight = 44;
+     CGFloat maxY = CGRectGetMaxY(rect);
+     CGFloat minY = CGRectGetMinY(rect);
+     if (maxY - suggestionsHeight < 0) {
+       rect.origin.y = maxY;
+     } else {
+       rect.origin.y = minY - suggestionsHeight;
+     }
+     rect.size.height = 0;
+     self.frame = rect;
+  }];
+}
+  
+- (void)unmarkText
+{
+  [super unmarkText];
+  if (_markedText) {
+    [self _insertText:_markedText];
+  }
+  [self reset];
+}
 
 - (void)insertText:(NSString *)text
 {
   [self _insertText:text];
   
   if (_markedText) {
+    [self reset];
     return;
   }
   
@@ -522,6 +503,13 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
 
 - (void)deleteBackward
 {
+  if (_markedText.length == 1) {
+    _markedText = nil;
+    _skipTextStorageDelete = YES;
+    [self unmarkText];
+    _skipTextStorageDelete = NO;
+    return;
+  }
   // Send a delete backward key to the buffer
   [_device write:@"\x7f"];
   
@@ -542,7 +530,11 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
 - (void)_escSeqWithInput:(NSString *)input
 {
   if (_device.view.hasSelection) {
-    [self _changeSelectionWithInput:input andFlags:UIKeyModifierAlternate];
+    if ([input isEqualToString:@""]) {
+      [self _changeSelectionWithInput:UIKeyInputEscape andFlags:kNilOptions];
+    } else {
+      [self _changeSelectionWithInput:input andFlags:UIKeyModifierAlternate];
+    }
   } else {
     [_device write:[CC ESC:input]];
   }
@@ -730,11 +722,7 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
 
 - (void)pasteSelection:(id)sender
 {
-  NSString *str = _device.view.selectedText;
-  if (str) {
-    [_device write:str];
-  }
-  [_device.view cleanSelection];
+  [_device.view pasteSelection: sender];
 }
 
 - (void)copyLink:(id)sender
@@ -870,7 +858,7 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
   NSString *charset;
   NSString *shiftCharset = nil;
   if (seq == TermViewCtrlSeq || seq == TermViewEscCtrlSeq) {
-    charset = @"qwertyuiopasdfghjklzxcvbnm[\\]^/_ \t";
+    charset = @"2345678qwertyuiopasdfghjklzxcvbnm[\\]^/_ \t";
   } else if (seq == TermViewEscSeq) {
     shiftCharset = @"qwertyuiopasdfghjklzxcvbnm";
     charset = [shiftCharset stringByAppendingString:@"1234567890`~!@#$%^&*()_=+[]{}\\|;':\",./<>?\t"];
@@ -1000,7 +988,7 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
   NSArray<UIKeyCommand *> * commands = _kbdCommands;
   NSString *lang = self.textInputMode.primaryLanguage;
   
-  if (lang && [_imeLangSet containsObject:lang]) {
+  if ((lang && [_imeLangSet containsObject:lang]) || _markedText) {
     commands = _kbdCommandsWithoutAutoRepeat;
   }
 
@@ -1017,12 +1005,7 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
 
 - (void)yank:(id)sender
 {
-  NSString *str = [UIPasteboard generalPasteboard].string;
-  
-  if (str) {
-    [_device write:str];
-  }
-  [_device.view cleanSelection];
+  [_device.view paste:sender];
 }
 
 - (void)_changeSelection:(UIKeyCommand *) cmd

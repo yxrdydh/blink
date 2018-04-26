@@ -6,11 +6,14 @@ function _postMessage(op, data) {
   window.webkit.messageHandlers.interOp.postMessage({ op, data });
 }
 
-hterm.copySelectionToClipboard = function(document, content) {
+hterm.Terminal.prototype.copyStringToClipboard = function(content) {
+  if (this.prefs_.get('enable-clipboard-notice')) {
+    setTimeout(this.showOverlay.bind(this, hterm.notifyCopyMessage, 500), 200);
+  }
+
   document.getSelection().removeAllRanges();
   _postMessage('copy', { content });
 };
-
 
 // Speedup a little bit.
 hterm.Screen.prototype.syncSelectionCaret = function() {};
@@ -85,6 +88,9 @@ function term_write(data) {
   t.interpret(data);
 }
 
+function term_paste(str) {
+  t.onPaste_({text: str || ""});
+}
 
 var term_write_b64 = null;
 
@@ -154,7 +160,7 @@ function term_setIme(str) {
     } else {
       ime.style.top = 'calc(var(--hterm-charsize-height) * (var(--hterm-cursor-offset-row) - ' + (Math.floor(length / (screenCols + 1))) + ' - 1))'
     }
-  } else if ((cursorCol + length) <= screenCols ) {
+  } else if (cursorCol + length <= screenCols ) {
     // we are inlined
     ime.style.left = 'calc(var(--hterm-charsize-width) * var(--hterm-cursor-offset-col))';
     ime.style.top = 'calc(var(--hterm-charsize-height) * var(--hterm-cursor-offset-row))';
@@ -289,53 +295,60 @@ function _modifySelectionByLine(direction) {
   var aNode = selection.anchorNode;
   var aOffset = selection.anchorOffset;
   
-  var fRow = t.screen_.getXRowAncestor_(fNode);
+  var dy = direction === 'left' ? -t.scrollPort_.characterSize.height : t.scrollPort_.characterSize.height;
+  var dx = t.scrollPort_.characterSize.width;
+  var range = selection.getRangeAt(0);
   
-  var targetRow = direction === 'left' ?  fRow.previousSibling : fRow.nextSibling;
-  
-  // We out of screen
-  if (targetRow == null || targetRow.nodeName !== 'X-ROW') {
-    if (direction === 'left') {
-      selection.setBaseAndExtent(aNode, aOffset, fRow, 0);
-    } else {
-      selection.setBaseAndExtent(aNode, aOffset, fRow.nextSibling, 0);
-    }
-    
-    return;
-  }
-  
-  if (fNode.nodeName === 'X-ROW') {
-    if (direction === 'left') {
-      selection.setBaseAndExtent(aNode, aOffset, fNode.previousSibling, 0);
-      selection.modify("extend", direction, 'character');
-    } else {
-      selection.setBaseAndExtent(aNode, aOffset, fNode.nextSibling, 0);
-    }
-    
-    return;
-  }
-  
-  var position = t.screen_.getPositionWithinRow_(fRow, fNode, fOffset);
-  var nodeAndOffset = t.screen_.getNodeAndOffsetWithinRow_(targetRow, position);
-  
-  if (nodeAndOffset) {
-    selection.setBaseAndExtent(aNode, aOffset, nodeAndOffset[0], nodeAndOffset[1]);
-    
-    if (selection.isCollapsed) {
-      selection.setBaseAndExtent(fNode, fOffset, aNode, aOffset);
-      _modifySelectionByLine(direction);
-    }
-    return;
-  }
-  
-  if (direction === 'left') {
-    selection.setBaseAndExtent(aNode, aOffset, fRow, 0);
-    selection.modify("extend", direction, 'character');
+  var topLeft = true;
+  if (fNode === aNode) {
+    topLeft = fOffset < aOffset;
   } else {
-    selection.setBaseAndExtent(aNode, aOffset, targetRow, 0);
-    selection.modify("extend", direction, 'lineboundary');
-    selection.modify("extend", direction, 'character');
+    topLeft = range.compareNode(selection.focusNode) !== Range.NODE_AFTER;
   }
+  
+  if (topLeft) {
+    // top left
+    var rect = _filteredRects(range)[0];
+    var point = { x: rect.left, y: rect.top + Math.abs(dy) * 0.5 };
+    var newRange = document.caretRangeFromPoint(point.x, point.y + dy);
+    if (!newRange) {
+      selection.modify("extend", direction, 'line');
+    } else {
+      if (newRange.startContainer.textContent.length <= newRange.startOffset) {
+        if (newRange.startContainer.nodeName === 'X-ROW' && newRange.startOffset === 0) {
+          selection.setBaseAndExtent(aNode, aOffset, newRange.startContainer, newRange.startOffset);
+          selection.modify("extend", 'left', 'character');
+        } else {
+          selection.setBaseAndExtent(aNode, aOffset, newRange.startContainer, Math.max(newRange.startOffset - 1, 0));
+        }
+      } else {
+        selection.setBaseAndExtent(aNode, aOffset, newRange.startContainer, newRange.startOffset);
+      }
+    }
+  } else {
+    // bottom right
+    var rects = _filteredRects(range);
+    var rect = rects[rects.length - 1];
+    var point = { x: rect.right, y: rect.bottom - Math.abs(dy) * 0.5};
+    var newRange = document.caretRangeFromPoint(point.x, point.y + dy);
+    if (newRange == null) {
+      point.x -= dx * 0.5;
+    }
+    newRange = document.caretRangeFromPoint(point.x, point.y + dy);
+    selection.setBaseAndExtent(aNode, aOffset, newRange.startContainer, newRange.startOffset);
+  }
+}
+
+function _filteredRects(range) {
+  var res = [];
+  var rects = range.getClientRects();
+  for (var i = 0; i < rects.length; i++) {
+    var r = rects[i];
+    if (r.width > 0) {
+      res.push(r);
+    }
+  }
+  return res;
 }
 
 function term_modifySelection(direction, granularity) {
@@ -344,16 +357,21 @@ function term_modifySelection(direction, granularity) {
     return;
   }
   
-  if (granularity === 'line') {
-    _modifySelectionByLine(direction);
-    return;
-  }
-  
   var fNode = selection.focusNode;
   var fOffset = selection.focusOffset;
   var aNode = selection.anchorNode;
   var aOffset = selection.anchorOffset;
   
+  if (granularity === 'line') {
+    _modifySelectionByLine(direction);
+    if (selection.isCollapsed) {
+      selection.setBaseAndExtent(fNode, fOffset, aNode, aOffset);
+      _modifySelectionByLine(direction);
+    }
+    
+    return;
+  }
+ 
   selection.modify("extend", direction, granularity);
   
   // we collapse selection, so swap direction and rerun modification again
