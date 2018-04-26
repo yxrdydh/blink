@@ -300,6 +300,7 @@ void completion(const char *command, linenoiseCompletions *lc) {
   argv = nil;
 
   NSString *docsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+  sideLoading = false;
   initializeEnvironment(); // initialize environment variables for iOS system
   NSString *SSL_CERT_FILE = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"cacert.pem"];
   setenv("SSL_CERT_FILE", SSL_CERT_FILE.UTF8String, 1); // force rewrite of value
@@ -512,7 +513,7 @@ void completion(const char *command, linenoiseCompletions *lc) {
 {
   self.sessionParameters.childSessionParameters = nil;
   [self.delegate indexCommand:args];
-  _childSession = [[SSHSession2 alloc] initWithDevice:_device andParametes:self.sessionParameters.childSessionParameters];
+  // _childSession = [[SSHSession2 alloc] initWithDevice:_device andParametes:self.sessionParameters.childSessionParameters];
   self.sessionParameters.childSessionType = @"ssh2";
   [_childSession executeAttachedWithArgs:args];
   _childSession = nil;
