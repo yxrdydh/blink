@@ -507,7 +507,7 @@ void completion(const char *command, linenoiseCompletions *lc) {
 {
   self.sessionParameters.childSessionParameters = nil;
   [self.delegate indexCommand:args];
-  _childSession = [[SSHSession2 alloc] initWithDevice:_device andParametes:self.sessionParameters.childSessionParameters];
+  // _childSession = [[SSHSession2 alloc] initWithDevice:_device andParametes:self.sessionParameters.childSessionParameters];
   self.sessionParameters.childSessionType = @"ssh2";
   [_childSession executeAttachedWithArgs:args];
   _childSession = nil;

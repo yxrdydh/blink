@@ -439,7 +439,7 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
 - (void)setMarkedText:(NSString *)markedText selectedRange:(NSRange)selectedRange
 {
   [super setMarkedText:markedText selectedRange:selectedRange];
-  _markedText = markedText;
+  _markedText = markedText; /*
   [self.termDelegate.termView setIme: _markedText
                    completionHandler:^(id data, NSError * _Nullable error) {
      if (!data) {
@@ -458,7 +458,7 @@ NSString *const TermViewAutoRepeateSeq = @"autoRepeatSeq:";
      }
      rect.size.height = 0;
      self.frame = rect;
-  }];
+  }]; */
 }
   
 - (void)unmarkText
