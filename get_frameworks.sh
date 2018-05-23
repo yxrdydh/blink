@@ -4,7 +4,7 @@ LIBSSH2_VER="1.7.0"
 OPENSSL_VER="1.0.2j"
 LIBMOSH_VER="1.3.2-8cd6688"
 PROTOBF_VER="2.6.1"
-IOS_SYSTEM_VER="1.1"
+IOS_SYSTEM_VER="2.1"
 
 GHROOT="https://github.com/blinksh"
 HHROOT="https://github.com/holzschu"
