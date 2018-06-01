@@ -30,16 +30,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #import "AppDelegate.h"
+#import "Migrator.h"
 #import "BKiCloudSyncHandler.h"
 #import "BKTouchIDAuthManager.h"
 #import "ScreenController.h"
+#import "BlinkPaths.h"
+#import "BKDefaults.h"
+#import "BKPubKey.h"
+#import "BKHosts.h"
+#import <ios_system/ios_system.h>
+
 
 @import CloudKit;
-
-#undef HOCKEYSDK
-#if HOCKEYSDK
-@import HockeySDK;
-#endif
 
 @interface AppDelegate ()
 @end
@@ -50,30 +52,46 @@
   BOOL _suspendedMode;
 }
   
-void _on_pipebroken_signal(int signum){
+void __on_pipebroken_signal(int signum){
   NSLog(@"PIPE is broken");
+}
+
+void __setupProcessEnv() {
+  NSBundle *mainBundle = [NSBundle mainBundle];
+  int forceOverwrite = 1;
+  NSString *SSL_CERT_FILE = [mainBundle pathForResource:@"cacert" ofType:@"pem"];
+  setenv("SSL_CERT_FILE", SSL_CERT_FILE.UTF8String, forceOverwrite);
+  
+  NSString *locales_path = [mainBundle pathForResource:@"locales" ofType:@"bundle"];
+  setenv("PATH_LOCALE", locales_path.UTF8String, forceOverwrite);
+  setenv("LC_CTYPE", "UTF-8", forceOverwrite);
+  setlocale(LC_CTYPE, "UTF-8");
+  setlocale(LC_ALL, "UTF-8");
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  signal(SIGPIPE, _on_pipebroken_signal);
+  signal(SIGPIPE, __on_pipebroken_signal);
   
-  [[BKTouchIDAuthManager sharedManager]registerforDeviceLockNotif];
-    
-  // Override point for customization after application launch.
-#if HOCKEYSDK
-  NSString *hockeyID = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"HockeyID"];
-  [[BITHockeyManager sharedHockeyManager] configureWithIdentifier:hockeyID];
-  // Do some additional configuration if needed here
-  [[BITHockeyManager sharedHockeyManager].crashManager setCrashManagerStatus:BITCrashManagerStatusAutoSend];
-  [[BITHockeyManager sharedHockeyManager].crashManager setEnableAppNotTerminatingCleanlyDetection:YES];
-  //[[BITHockeyManager sharedHockeyManager] setDebugLogEnabled: YES];
-  [[BITHockeyManager sharedHockeyManager] startManager];
-  [[BITHockeyManager sharedHockeyManager].authenticator authenticateInstallation]; // This line is obsolete in the crash only build
-#endif
+  __setupProcessEnv();
+  
+  [BlinkPaths linkICloudDriveIfNeeded];
+  
+  [[BKTouchIDAuthManager sharedManager] registerforDeviceLockNotif];
 
-
+  sideLoading = false; // Turn off extra commands from iOS system
+  initializeEnvironment(); // initialize environment variables for iOS system
+  
   [[ScreenController shared] setup];
+  return YES;
+}
+
+- (BOOL)application:(UIApplication *)application willFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  [Migrator migrateIfNeeded];
+  [BKDefaults loadDefaults];
+  [BKPubKey loadIDS];
+  [BKHosts loadHosts];
   return YES;
 }
 
@@ -218,5 +236,13 @@ void _on_pipebroken_signal(int signum){
   _suspendTaskId = UIBackgroundTaskInvalid;
 }
 
+
+#pragma mark - LSSupportsOpeningDocumentsInPlace
+
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+{
+  // What we can do useful?
+  return YES;
+}
 
 @end

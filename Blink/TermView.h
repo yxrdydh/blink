@@ -34,23 +34,23 @@
 #import "MCPSessionParameters.h"
 
 @class TermView;
+@class TermDevice;
 @class TermInput;
 
-@protocol TerminalDelegate <NSObject>
 
-@property (readonly, nonatomic) TermView *termView;
+@protocol TermViewDeviceProtocol
 
-- (void)write:(NSString *)input;
+@property BOOL rawMode;
+
 - (BOOL)handleControl:(NSString *)control;
+- (void)viewIsReady;
+- (void)viewFontSizeChanged:(NSInteger)size;
+- (void)viewWinSizeChanged:(struct winsize)win;
+- (void)viewSendString:(NSString *)data;
+- (void)viewCopyString:(NSString *)text;
 
-@optional
-- (void)terminalIsReady: (NSDictionary *)data;
-- (void)updateTermRows:(NSNumber *)rows Cols:(NSNumber *)cols;
-- (void)fontSizeChanged:(NSNumber *)size;
-- (void)focus;
-- (void)blur;
-- (void)attachInput:(TermInput *)termInput;
 @end
+
 
 @interface BKWebView: WKWebView
 
@@ -58,12 +58,11 @@
 
 @interface TermView : UIView
 
-@property (weak) id<TerminalDelegate> termDelegate;
 @property (nonatomic, readonly) NSString *title;
 @property (nonatomic, readonly) BOOL hasSelection;
 @property (nonatomic, readonly) NSURL *detectedLink;
 @property (nonatomic, readonly) NSString *selectedText;
-@property BOOL readyToDelete;
+@property (nonatomic) id<TermViewDeviceProtocol> device;
 
 - (id)initWithFrame:(CGRect)frame;
 - (void)loadWith:(MCPSessionParameters *)params;
@@ -76,16 +75,19 @@
 - (void)setBoldAsBright:(BOOL)state;
 - (void)setBoldEnabled:(NSUInteger)state;
 - (void)setIme:(NSString *)imeText completionHandler:(void (^ _Nullable)(_Nullable id, NSError * _Nullable error))completionHandler;
-- (void)copy:(id)sender;
+- (void)copy:(id _Nullable )sender;
+- (void)pasteSelection:(id _Nullable)sender;
 - (void)terminate;
 - (void)reset;
 
 - (void)blur;
-- (void)focus; 
+- (void)focus;
+- (void)reportTouchInPoint:(CGPoint)point;
 - (void)cleanSelection;
 - (void)increaseFontSize;
 - (void)decreaseFontSize;
 - (void)resetFontSize;
+- (void)writeB64:(NSData *)data;
 
 - (void)modifySideOfSelection;
 - (void)modifySelectionInDirection:(NSString *)direction granularity:(NSString *)granularity;

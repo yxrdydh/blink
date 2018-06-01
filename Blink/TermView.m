@@ -29,14 +29,21 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <sys/ioctl.h>
-
 #import "TermView.h"
+#import "TermDevice.h"
 #import "BKDefaults.h"
 #import "BKSettingsNotifications.h"
 #import "BKFont.h"
 #import "BKTheme.h"
 #import "TermJS.h"
+
+struct winsize __winSizeFromJSON(NSDictionary *json) {
+  struct winsize res;
+  res.ws_col = [json[@"cols"] integerValue];
+  res.ws_row = [json[@"rows"] integerValue];
+  
+  return res;
+}
 
 @implementation BKWebView
 
@@ -79,9 +86,9 @@
 
 @implementation TermView {
   WKWebView *_webView;
+  UIImageView *_snapshotImageView;
   
   BOOL _focused;
-  
   BOOL _jsIsBusy;
   dispatch_queue_t _jsQueue;
   NSMutableString *_jsBuffer;
@@ -100,8 +107,59 @@
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self _addWebView];
   }
+  
+  NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+  [nc addObserver:self selector:@selector(_willResignActive) name:UIApplicationWillResignActiveNotification object:nil];
+  
+  [nc addObserver:self selector:@selector(_didBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
+  
+  _snapshotImageView = [[UIImageView alloc] initWithFrame:self.bounds];
+  _snapshotImageView.contentMode = UIViewContentModeTop | UIViewContentModeLeft;
+  _snapshotImageView.autoresizingMask =  UIViewAutoresizingNone;
 
   return self;
+}
+
+- (void)dealloc
+{
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)_willResignActive
+{
+  if (self.window == nil) {
+    return;
+  }
+
+  if (@available(iOS 11.0, *)) {
+    [_webView takeSnapshotWithConfiguration:nil completionHandler:^(UIImage * _Nullable snapshotImage, NSError * _Nullable error) {
+      _snapshotImageView.image = snapshotImage;
+      _snapshotImageView.frame = self.bounds;
+      _snapshotImageView.alpha = 1;
+      [self addSubview:_snapshotImageView];
+      [_webView removeFromSuperview];
+    }];
+  } else {
+    // Blank screen for ios 10?
+    _snapshotImageView.frame = self.bounds;
+    [self addSubview:_snapshotImageView];
+    [_webView removeFromSuperview];
+  }
+}
+
+- (void)_didBecomeActive
+{
+  if (_webView.superview) {
+    return;
+  }
+
+  _webView.frame = self.bounds;
+  [self insertSubview:_webView belowSubview:_snapshotImageView];
+  [UIView animateWithDuration:0.2 delay:0.0 options:kNilOptions animations:^{
+    _snapshotImageView.alpha = 0;
+  } completion:^(BOOL finished) {
+    [_snapshotImageView removeFromSuperview];
+  }];
 }
 
 - (BOOL)canBecomeFirstResponder {
@@ -158,7 +216,6 @@
   
   [_webView loadRequest:request];
 }
-
 
 - (void)reloadWith:(MCPSessionParameters *)params;
 {
@@ -224,7 +281,13 @@
 
 - (void)focus {
   _focused = YES;
+  [self _didBecomeActive]; // Double check and attach if we are detached
   [_webView evaluateJavaScript:term_focus() completionHandler:nil];
+}
+
+- (void)reportTouchInPoint:(CGPoint)point
+{
+  [_webView evaluateJavaScript:term_reportTouchInPoint(point) completionHandler:nil];
 }
 
 - (void)blur
@@ -242,28 +305,50 @@
     if (_jsIsBusy) {
       return;
     }
+
+    NSString * buffer = _jsBuffer;
+    if (buffer.length == 0) {
+      return;
+    }
   
     _jsIsBusy = YES;
-    
-    NSString * buffer = _jsBuffer;
     _jsBuffer = [[NSMutableString alloc] init];
     
     NSString *jsScript = term_write(buffer);
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [_webView evaluateJavaScript: jsScript completionHandler:^(id result, NSError *error) {
-        dispatch_async(_jsQueue, ^{
-          _jsIsBusy = NO;
-          if (_jsBuffer.length > 0) {
-            [self write:@""];
-          }
-        });
-      }];
-    });
-    
+    [self _evalJSScript:jsScript];
   });
 }
 
+- (void)writeB64:(NSData *)data
+{
+  dispatch_async(_jsQueue, ^{
+    _jsIsBusy = YES;
+
+    NSString * buffer = _jsBuffer;
+    _jsBuffer = [[NSMutableString alloc] init];
+    
+    NSString *jsScript = term_writeB64(data);
+    
+    if (buffer.length > 0) {
+      jsScript = [term_write(buffer) stringByAppendingString:jsScript];
+    }
+    [self _evalJSScript:jsScript];
+  });
+}
+
+- (void)_evalJSScript:(NSString *)jsScript
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [_webView evaluateJavaScript: jsScript completionHandler:^(id result, NSError *error) {
+      dispatch_async(_jsQueue, ^{
+        _jsIsBusy = NO;
+        if (_jsBuffer.length > 0) {
+          [self write:@""];
+        }
+      });
+    }];
+  });
+}
 
 //  Since TermView is a WKScriptMessageHandler, it must implement the userContentController:didReceiveScriptMessage method. This is the method that is triggered each time 'interOp' is sent a message from the JavaScript code.
 - (void)userContentController:(WKUserContentController *)userContentController
@@ -276,29 +361,75 @@
   if ([operation isEqualToString:@"selectionchange"]) {
     [self _handleSelectionChange:data];
   } else if ([operation isEqualToString:@"sigwinch"]) {
-    if ([_termDelegate respondsToSelector:@selector(updateTermRows:Cols:)]) {
-      [_termDelegate updateTermRows:data[@"rows"] Cols:data[@"cols"]];
-    }
+    [_device viewWinSizeChanged:__winSizeFromJSON(data)];
   } else if ([operation isEqualToString:@"terminalReady"]) {
-    self.alpha = 1;
-    if ([_termDelegate respondsToSelector:@selector(terminalIsReady:)]) {
-      [_termDelegate terminalIsReady:data];
-      
-      if (_focused) {
-        [self focus];
-      } else {
-        [self blur];
-      }
-    }
+    [self _onTerminalReady:data];
   } else if ([operation isEqualToString:@"fontSizeChanged"]) {
-    if ([_termDelegate respondsToSelector:@selector(fontSizeChanged:)]) {
-      [_termDelegate fontSizeChanged:data[@"size"]];
-    }
+    [_device viewFontSizeChanged:[data[@"size"] integerValue]];
   } else if ([operation isEqualToString:@"copy"]) {
-    [[UIPasteboard generalPasteboard] setString:data[@"content"]];
+    [_device viewCopyString: data[@"content"]];
   } else if ([operation isEqualToString:@"sendString"]) {
-    [_termDelegate write:data[@"string"]];
+    [_device viewSendString:data[@"string"]];
   }
+}
+
+- (void)_onTerminalReady:(NSDictionary *)data
+{
+  NSArray *bgColor = data[@"bgColor"];
+  if (bgColor && bgColor.count == 3) {
+    self.backgroundColor = [UIColor colorWithRed:[bgColor[0] floatValue] / 255.0f
+                                           green:[bgColor[1] floatValue] / 255.0f
+                                            blue:[bgColor[2] floatValue] / 255.0f
+                                           alpha:1];
+  }
+  
+  [_device viewWinSizeChanged:__winSizeFromJSON(data[@"size"])];
+  
+  self.alpha = 1;
+
+  [_device viewIsReady];
+    
+  if (_focused) {
+    [self focus];
+  } else {
+    [self blur];
+  }
+}
+  
+- (NSString *)_menuTitleFromNSURL:(NSURL *)url
+{
+  if (!url) {
+    return @"";
+  }
+  
+  NSString *base = url.host;
+  
+  if (!base) {
+    if ([@"mailto" isEqualToString:url.scheme]) {
+      base = @"Email";
+    } else {
+      base = @"URL";
+    }
+  }
+  
+  if (url.fragment.length > 0 || url.path.length > 0 || url.query.length > 0) {
+    return [base stringByAppendingString:@"…"];
+  }
+  
+  return base;
+}
+  
+- (NSString *)_menuActionTitleFromNSURL:(NSURL *)url
+{
+  if (!url) {
+    return @"Open";
+  }
+
+  if ([@"mailto" isEqualToString:url.scheme]) {
+    return @"Compose";
+  }
+  
+  return @"Open";
 }
   
 - (NSString *)_menuTitleFromNSURL:(NSURL *)url
@@ -426,12 +557,26 @@
   
 - (void)pasteSelection:(id)sender
 {
-  
+  NSString *str = _selectedText;
+  if (str) {
+    [_webView evaluateJavaScript:term_paste(str) completionHandler:nil];
+  }
+  [self cleanSelection];
 }
 
 - (void)copy:(id)sender
 {
   [_webView copy:sender];
+}
+
+- (void)paste:(id)sender
+{
+  NSString *str = [UIPasteboard generalPasteboard].string;
+  if (str) {
+    [_webView evaluateJavaScript:term_paste(str) completionHandler:nil];
+  }
+  
+  [self cleanSelection];
 }
 
 - (NSString *)_detectFontFamilyFromContent:(NSString *)content

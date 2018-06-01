@@ -1,0 +1,7 @@
+osx_image: xcode9.3
+language: objective-c
+
+before_script:
+- "./get_frameworks.sh"
+script:
+- "set -o pipefail && xcodebuild -project Blink.xcodeproj -scheme Blink -sdk iphoneos -configuration Debug clean build CODE_SIGN_IDENTITY='' CODE_SIGNING_REQUIRED=NO ONLY_ACTIVE_ARCH=NO | tee build.log | xcpretty"

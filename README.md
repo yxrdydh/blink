@@ -48,7 +48,7 @@ sftp localFilename user@host.name.edu:~/
 
 scp and sftp are implemented through curl, by rewriting the arguments to follow the curl syntax. Pro: lighter implementation, smaller memory cost, less likely to have function name collisions. Con: some switches might not have exactly the same meaning. 
 
-The language packages ([Python](https://github.com/holzschu/python_ios), [Lua](https://github.com/holzschu/lua_ios) and [TeX](https://github.com/holzschu/lib-tex)) only provide the equivalent of the binaries. It is up to you to transfer the directories with the packges  (`/usr/local/texlive` or `/usr/lib/python2.7`), and place them in the Library folder of the Blink application. This is where commands such as ls, rm, tar, mv... will be useful. 
+The language packages ([Python](https://github.com/holzschu/python_ios), [Lua](https://github.com/holzschu/lua_ios) and [TeX](https://github.com/holzschu/lib-tex)) only provide the equivalent of the binaries. It is up to you to transfer the directories with the packages (`/usr/local/texlive` or `/usr/lib/python2.7`), and place them in the Library folder of the Blink application. This is where commands such as ls, rm, tar, mv... will be useful.
 
 Note: all frameworks (except curl) are dynamic frameworks, to reduce the Application memory footprint. 
 
@@ -79,6 +79,8 @@ Bugs should be reported here on GitHub. Crash reports will be automatically repo
 We can't wait to receive your valuable feedback. Enjoy!
 
 ## Build
+[![Build Status](https://travis-ci.org/blinksh/blink.svg?branch=raw)](https://travis-ci.org/blinksh/blink)
+
 We made a ton easier to build and install Blink yourself on your iOS devices through XCode. We provide a precompiled package with all the libraries for the master branch. Just extract this package in your Framework folder and build Blink.
 
 ```bash
@@ -114,7 +116,7 @@ cd ~
 Our UI is very straightforward and optimizes the experience on touch devices for the really important part, the terminal. You will jump right into a very simple shell, so you will know what to do. Here are a few more tricks:
 - Type 'help' to find information at the shell.
 - Use two fingers tap to create a new shell.
-- Move between shells by swapping your finger.
+- Move between shells by swiping your finger.
 - You can exit the session and get back to the shell to open a new connection.
 - You can also close a session by dragging two fingers down.
 - Use pinch gesture to increase or reduce size of text. You can also use Cmd+ or Cmd- if using the keyboard.

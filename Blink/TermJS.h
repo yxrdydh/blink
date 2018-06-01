@@ -47,6 +47,14 @@ NSString *term_write(NSString *data) {
   return [NSString stringWithFormat:@"term_write(%@[0]);", _encodeString(data)];
 }
 
+NSString *term_writeB64(NSData *data) {
+  return [NSString stringWithFormat:@"term_write_b64(\"%@\");", [data base64EncodedStringWithOptions:kNilOptions]];
+}
+
+NSString *term_paste(NSString *str) {
+  return [NSString stringWithFormat:@"term_paste(%@[0]);", _encodeString(str)];
+}
+
 NSString *term_clear()
 {
   return @"term_clear();";
@@ -65,6 +73,10 @@ NSString *term_focus()
 NSString *term_blur()
 {
   return @"term_blur();";
+}
+
+NSString *term_reportTouchInPoint(CGPoint point) {
+  return [NSString stringWithFormat:@"term_reportTouchInPoint(%@, %@);", @(point.x), @(point.y)];
 }
 
 NSString *term_setWidth(NSInteger count)
@@ -151,6 +163,11 @@ NSString *term_setIme(NSString *imeText)
 NSString *term_modifySideSelection()
 {
   return @"term_modifySideSelection();";
+}
+
+NSString *term_setAutoCarriageReturn(BOOL state)
+{
+  return [NSString stringWithFormat:@"term_setAutoCarriageReturn(%@);", state ? @"true" : @"false"];
 }
 
 

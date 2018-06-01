@@ -31,11 +31,15 @@
 
 #import <Foundation/Foundation.h>
 
+#import "Repl.h"
 #import "Session.h"
 #import "MCPSessionParameters.h"
 
 @interface MCPSession : Session
 
 @property (strong) MCPSessionParameters *sessionParameters;
+@property (strong, readonly) Repl *repl;
+
+- (void)updateAllowedPaths;
 
 @end

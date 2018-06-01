@@ -42,10 +42,17 @@
 #import "TouchOverlay.h"
 #import "BKTouchIDAuthManager.h"
 
-@interface SpaceController () <UIPageViewControllerDataSource, UIPageViewControllerDelegate,
-  UIGestureRecognizerDelegate, TermControlDelegate, TouchOverlayDelegate, ControlPanelDelegate>
+@interface SpaceController () <
+  UIPageViewControllerDataSource,
+  UIPageViewControllerDelegate,
+  UIDropInteractionDelegate,
+  TermControlDelegate,
+  TouchOverlayDelegate,
+  ControlPanelDelegate
+>
 
 @property (readonly) TermController *currentTerm;
+@property (readonly) TermDevice *currentDevice;
 
 @end
 
@@ -134,6 +141,14 @@
   if (_viewports == nil) {
     [self _createShellWithUserActivity: nil sessionStateKey:nil animated:YES completion:nil];
   }
+  
+  if (@available(iOS 11.0, *)) {
+    UIDropInteraction *catchDropInteraction = [[UIDropInteraction alloc] initWithDelegate:self];
+    [self.view addInteraction:catchDropInteraction];
+    
+    UIDropInteraction *termInputDropInteraction = [[UIDropInteraction alloc] initWithDelegate:self];
+    [_termInput addInteraction:termInputDropInteraction];
+  }
 }
 
 - (BOOL)canBecomeFirstResponder
@@ -148,7 +163,7 @@
 
 - (void)_attachInputToCurrentTerm
 {
-  [self.currentTerm attachInput:_termInput];
+  [self.currentDevice attachInput:_termInput];
 }
 
 - (void)decodeRestorableStateWithCoder:(NSCoder *)coder andStateManager: (StateManager *)stateManager
@@ -350,7 +365,7 @@
 {
   if (completed) {
     for (TermController *term in previousViewControllers) {
-      [term attachInput:nil];
+      [term.termDevice attachInput:nil];
     }
 
     [self _displayHUD];
@@ -360,8 +375,14 @@
 
 
 #pragma mark Spaces
-- (TermController *)currentTerm {
+- (TermController *)currentTerm
+{
   return _viewportsController.viewControllers[0];
+}
+
+- (TermDevice *)currentDevice
+{
+  return self.currentTerm.termDevice;
 }
 
 - (void)_toggleMusicHUD
@@ -579,10 +600,10 @@
                   [UIKeyCommand keyCommandWithInput: @"w" modifierFlags: modifierFlags
                                              action: @selector(closeShell:)
                                discoverabilityTitle: @"Close shell"],
-                  [UIKeyCommand keyCommandWithInput: @"]" modifierFlags: modifierFlags
+                  [UIKeyCommand keyCommandWithInput: @"]" modifierFlags: [BKUserConfigurationManager shortCutModifierFlagsForNextPrevShell]
                                              action: @selector(nextShell:)
                                discoverabilityTitle: @"Next shell"],
-                  [UIKeyCommand keyCommandWithInput: @"[" modifierFlags: modifierFlags
+                  [UIKeyCommand keyCommandWithInput: @"[" modifierFlags: [BKUserConfigurationManager shortCutModifierFlagsForNextPrevShell]
                                              action: @selector(prevShell:)
                                discoverabilityTitle: @"Previous shell"],
                   
@@ -640,17 +661,17 @@
 
 - (void)_increaseFontSize:(UIKeyCommand *)cmd
 {
-  [self.currentTerm.termView increaseFontSize];
+  [self.currentDevice.view increaseFontSize];
 }
 
 - (void)_decreaseFontSize:(UIKeyCommand *)cmd
 {
-  [self.currentTerm.termView decreaseFontSize];
+  [self.currentDevice.view decreaseFontSize];
 }
 
 - (void)_resetFontSize:(UIKeyCommand *)cmd
 {
-  [self.currentTerm.termView resetFontSize];
+  [self.currentDevice.view resetFontSize];
 }
 
 - (void)otherScreen:(UIKeyCommand *)cmd
@@ -873,7 +894,10 @@
 - (void)touchOverlay:(TouchOverlay *)overlay onOneFingerTap:(UITapGestureRecognizer *)recognizer
 {
   [_termInput reset];
-  [self.currentTerm focus];
+  TermController * term = self.currentTerm;
+  CGPoint point = [recognizer locationInView:term.view];
+  [term.termDevice focus];
+  [term.termDevice.view reportTouchInPoint: point];
 }
 
 - (void)touchOverlay:(TouchOverlay *)overlay onTwoFingerTap:(UITapGestureRecognizer *)recognizer
@@ -930,5 +954,51 @@
   [_termInput openLink:sender];
 }
 
+#pragma mark - UIDropInteractionDelegate
+
+- (BOOL)dropInteraction:(UIDropInteraction *)interaction canHandleSession:(id<UIDropSession>)session
+API_AVAILABLE(ios(11.0)){
+  BOOL res = [session canLoadObjectsOfClass:[NSString class]];
+  if (res) {
+    [_termInput reset];
+    _termInput.frame = self.view.bounds;
+    _termInput.alpha = 0.02;
+    _termInput.hidden = NO;
+    _termInput.backgroundColor = [UIColor clearColor];
+    [self.view bringSubviewToFront:_termInput];
+    [self _focusOnShell];
+  }
+   return res;
+}
+
+- (UIDropProposal *)dropInteraction:(UIDropInteraction *)interaction sessionDidUpdate:(id<UIDropSession>)session
+API_AVAILABLE(ios(11.0)){
+  return [[UIDropProposal alloc] initWithDropOperation:UIDropOperationCopy];
+}
+
+- (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session
+API_AVAILABLE(ios(11.0)){
+  [session loadObjectsOfClass:[NSString class] completion:^(NSArray<__kindof id<NSItemProviderReading>> * _Nonnull objects) {
+    NSString * str = [objects firstObject];
+    if (str) {
+      [self.currentDevice write:str];
+      [self.currentDevice.view cleanSelection];
+    }
+  }];
+}
+
+- (void)dropInteraction:(UIDropInteraction *)interaction sessionDidEnd:(id<UIDropSession>)session
+API_AVAILABLE(ios(11.0)){
+  _termInput.frame = CGRectZero;
+  _termInput.hidden = YES;
+  [_termInput reset];
+}
+
+- (void)dropInteraction:(UIDropInteraction *)interaction sessionDidExit:(id<UIDropSession>)session
+API_AVAILABLE(ios(11.0)){
+  _termInput.frame = CGRectZero;
+  _termInput.hidden = YES;
+  [_termInput reset];
+}
 
 @end
