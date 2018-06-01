@@ -431,42 +431,6 @@ struct winsize __winSizeFromJSON(NSDictionary *json) {
   
   return @"Open";
 }
-  
-- (NSString *)_menuTitleFromNSURL:(NSURL *)url
-{
-  if (!url) {
-    return @"";
-  }
-  
-  NSString *base = url.host;
-  
-  if (!base) {
-    if ([@"mailto" isEqualToString:url.scheme]) {
-      base = @"Email";
-    } else {
-      base = @"URL";
-    }
-  }
-  
-  if (url.fragment.length > 0 || url.path.length > 0 || url.query.length > 0) {
-    return [base stringByAppendingString:@"…"];
-  }
-  
-  return base;
-}
-  
-- (NSString *)_menuActionTitleFromNSURL:(NSURL *)url
-{
-  if (!url) {
-    return @"Open";
-  }
-
-  if ([@"mailto" isEqualToString:url.scheme]) {
-    return @"Compose";
-  }
-  
-  return @"Open";
-}
 
 - (void)_handleSelectionChange:(NSDictionary *)data
 {

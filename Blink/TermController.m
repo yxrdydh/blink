@@ -217,11 +217,6 @@ NSString * const BKUserActivityCommandLineKey = @"com.blink.cmdline.key";
   [_termDevice.input reset];
 }
   
-- (BOOL)handleControl:(NSString *)control
-{
-  return [_session handleControl:control];
-}
-  
 - (void)deviceFocused
 {
   return [_session setActiveSession];

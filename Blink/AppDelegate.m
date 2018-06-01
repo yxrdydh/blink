@@ -79,7 +79,7 @@ void __setupProcessEnv() {
   
   [[BKTouchIDAuthManager sharedManager] registerforDeviceLockNotif];
 
-  sideLoading = false; // Turn off extra commands from iOS system
+  sideLoading = true; // false = Turn off extra commands from iOS system (required for AppStore)
   initializeEnvironment(); // initialize environment variables for iOS system
   
   [[ScreenController shared] setup];
