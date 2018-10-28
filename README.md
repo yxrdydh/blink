@@ -100,18 +100,18 @@ If you want to use python, you will have to transfer the python modules. The bes
 - clone [Python-ios](https://github.com/holzschu/python_ios)
 - type `getPackages.sh`
 - to transfer the Python scripts to your device:
-..- `tar -cvzf pythonScripts.tar.gz Lib/`
-..- transfer the pythonScripts.tar.gz on the device, for example using iTunes
-..- on the iOS device: `tar -xvzf pythonScripts.tar.gz`
-..- `mv Lib ../Library/lib/python2.7`
+  - `tar -cvzf pythonScripts.tar.gz Lib/`
+  - transfer the pythonScripts.tar.gz on the device, for example using iTunes
+  - on the iOS device: `tar -xvzf pythonScripts.tar.gz`
+  - `mv Lib ../Library/lib/python2.7`
 - Also transfer the scripts: 
-..- `tar -cvzf binaries.tar.gz Tools/scripts/`
-..- transfer the binaries.tar.gz on your device, for example using iTunes
-..- on the iOS device: `tar -xvzf binaries.tar.gz` 
-..- `mv Tools/scripts ../Library/bin`
+  - `tar -cvzf binaries.tar.gz Tools/scripts/`
+  - transfer the binaries.tar.gz on your device, for example using iTunes
+  - on the iOS device: `tar -xvzf binaries.tar.gz` 
+  - `mv Tools/scripts ../Library/bin`
 - Then, install a few useful modules: 
-..- `python -m ensurepip`
-..- `pip install urllib3`
+  - `python -m ensurepip`
+  - `pip install urllib3`
 
 # Using Blink
 Our UI is very straightforward and optimizes the experience on touch devices for the really important part, the terminal. You will jump right into a very simple shell, so you will know what to do. Here are a few more tricks:
