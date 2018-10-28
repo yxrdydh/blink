@@ -96,8 +96,8 @@ Although this is the quickest method to get you up and running, if you would lik
 
 The precompiled version of `ios_system` already containes the `python` and `lua` "binaries", but not their associated modules.
 
-If you want to use python, you will have to transfer the python modules. The best way is to follow the instructions at [Python-ios][https://github.com/holzschu/python_ios] (without the compilation part). On your computer:
-- clone [Python-ios][https://github.com/holzschu/python_ios]
+If you want to use python, you will have to transfer the python modules. The best way is to follow the instructions at [Python-ios](https://github.com/holzschu/python_ios) (without the compilation part). On your computer:
+- clone [Python-ios](https://github.com/holzschu/python_ios)
 - type `getPackages.sh`
 - to transfer the Python scripts to your device:
 ..- `tar -cvzf pythonScripts.tar.gz Lib/`
