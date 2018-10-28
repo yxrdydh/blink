@@ -96,21 +96,22 @@ Although this is the quickest method to get you up and running, if you would lik
 
 The precompiled version of `ios_system` already containes the `python` and `lua` "binaries", but not their associated modules.
 
-If you want to use python, you will have to transfer the python modules. On your computer:
-```bash
-cd Python-2.7.13/
-tar -cvzf packages.tar.gz Lib/
-```
-transfer the file `packages.tar.gz` to your iOS device, using iTunes or the scp command in Blink. 
-
-On your device:
-```bash
-cd ~/Library/
-mkdir lib/
-tar -xvzf ~/packages.tar.gz 
-mv Lib lib/python2.7
-cd ~
-```
+If you want to use python, you will have to transfer the python modules. The best way is to follow the instructions at [Python-ios][https://github.com/holzschu/python_ios] (without the compilation part). On your computer:
+- clone [Python-ios][https://github.com/holzschu/python_ios]
+- type `getPackages.sh`
+- to transfer the Python scripts to your device:
+..- `tar -cvzf pythonScripts.tar.gz Lib/`
+..- transfer the pythonScripts.tar.gz on the device, for example using iTunes
+..- on the iOS device: `tar -xvzf pythonScripts.tar.gz`
+..- `mv Lib ../Library/lib/python2.7`
+- Also transfer the scripts: 
+..- `tar -cvzf binaries.tar.gz Tools/scripts/`
+..- transfer the binaries.tar.gz on your device, for example using iTunes
+..- on the iOS device: `tar -xvzf binaries.tar.gz` 
+..- `mv Tools/scripts ../Library/bin`
+- Then, install a few useful modules: 
+..- `python -m ensurepip`
+..- `pip install urllib3`
 
 # Using Blink
 Our UI is very straightforward and optimizes the experience on touch devices for the really important part, the terminal. You will jump right into a very simple shell, so you will know what to do. Here are a few more tricks:
