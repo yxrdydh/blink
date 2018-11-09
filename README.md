@@ -98,14 +98,15 @@ The precompiled version of `ios_system` already containes the `python` and `lua`
 
 If you want to use python, you will have to transfer the python modules. The best way is to follow the instructions at [Python-ios](https://github.com/holzschu/python_ios) (without the compilation part). On your computer:
 - clone [Python-ios](https://github.com/holzschu/python_ios)
-- type `getPackages.sh` (this will patch the python modules to work with `ios_system`).
+- type `./getPackages.sh` (this will patch the python modules to work with `ios_system`).
 - Then transfer the Python scripts to your device:
-  - `tar -cvzf pythonScripts.tar.gz Lib/`
+  - `tar -cvzf pythonScripts.tar.gz Python-2.7.13/Lib/`
   - transfer the pythonScripts.tar.gz on the device, for example using iTunes
   - on the iOS device: `tar -xvzf pythonScripts.tar.gz`
+  - `mkdir ../Library/lib`
   - `mv Lib ../Library/lib/python2.7`
 - Also transfer the scripts: 
-  - `tar -cvzf binaries.tar.gz Tools/scripts/`
+  - `tar -cvzf binaries.tar.gz Python-2.7.13/Tools/scripts/`
   - transfer the binaries.tar.gz on your device, for example using iTunes
   - on the iOS device: `tar -xvzf binaries.tar.gz` 
   - `mv Tools/scripts ../Library/bin`
