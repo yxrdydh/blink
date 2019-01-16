@@ -181,15 +181,32 @@ static int SshEncodeBuffer(unsigned char *pEncoding, int bufferLen, unsigned cha
   BIO *b64, *fpub;
 
   // reading the modulus
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   nLen = BN_num_bytes(_rsa->n);
+#else
+  const BIGNUM *_rsa_n;
+  const BIGNUM *_rsa_e;
+  RSA_get0_key(_rsa, &_rsa_n, &_rsa_e, NULL);
+  nLen = BN_num_bytes(_rsa_n);
+#endif
   nBytes = (unsigned char *)malloc(nLen);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   BN_bn2bin(_rsa->n, nBytes);
-
+#else
+  BN_bn2bin(_rsa_n, nBytes);
+#endif
   // reading the public exponent
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   eLen = BN_num_bytes(_rsa->e);
+#else
+  eLen = BN_num_bytes(_rsa_e);
+#endif
   eBytes = (unsigned char *)malloc(eLen);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   BN_bn2bin(_rsa->e, eBytes);
-
+#else
+  BN_bn2bin(_rsa_e, eBytes);
+#endif
   encodingLength = sizeof(pSshHeader) + 4 + eLen + 4 + nLen;
   // correct depending on the MSB of e and N
   if (eBytes[0] & 0x80) {
