@@ -75,10 +75,22 @@ rsa_public_encrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 	u_char *inbuf = NULL, *outbuf = NULL;
 	int len, ilen, olen, r = SSH_ERR_INTERNAL_ERROR;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	if (BN_num_bits(key->e) < 2 || !BN_is_odd(key->e))
+#else
+  const BIGNUM *key_e;
+  RSA_get0_key(key, NULL, &key_e, NULL);
+  if (BN_num_bits(key_e) < 2 || !BN_is_odd(key_e))
+#endif
 		return SSH_ERR_INVALID_ARGUMENT;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	olen = BN_num_bytes(key->n);
+#else
+  const BIGNUM *key_n;
+  RSA_get0_key(key, &key_n, NULL, NULL);
+  olen = BN_num_bytes(key_n);;
+#endif
 	if ((outbuf = malloc(olen)) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
@@ -123,7 +135,13 @@ rsa_private_decrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 	u_char *inbuf = NULL, *outbuf = NULL;
 	int len, ilen, olen, r = SSH_ERR_INTERNAL_ERROR;
 
-	olen = BN_num_bytes(key->n);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+  olen = BN_num_bytes(key->n);
+#else
+  const BIGNUM *key_n;
+  RSA_get0_key(key, &key_n, NULL, NULL);
+  olen = BN_num_bytes(key_n);;
+#endif
 	if ((outbuf = malloc(olen)) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
@@ -174,10 +192,22 @@ rsa_generate_additional_parameters(RSA *rsa)
 		goto out;
 	}
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	if ((BN_sub(aux, rsa->q, BN_value_one()) == 0) ||
 	    (BN_mod(rsa->dmq1, rsa->d, aux, ctx) == 0) ||
 	    (BN_sub(aux, rsa->p, BN_value_one()) == 0) ||
 	    (BN_mod(rsa->dmp1, rsa->d, aux, ctx) == 0)) {
+#else
+    const BIGNUM *rsa_q, *rsa_d, *rsa_p;
+    RSA_get0_key(rsa, NULL, NULL, &rsa_d);
+    RSA_get0_factors(rsa, &rsa_p, &rsa_q);
+    BIGNUM *rsa_dmq1, *rsa_dmp1;
+    RSA_get0_crt_params(rsa, &rsa_dmp1, &rsa_dmq1, NULL);
+    if ((BN_sub(aux, rsa_q, BN_value_one()) == 0) ||
+        (BN_mod(rsa_dmq1, rsa_d, aux, ctx) == 0) ||
+        (BN_sub(aux, rsa_p, BN_value_one()) == 0) ||
+        (BN_mod(rsa_dmp1, rsa_d, aux, ctx) == 0)) {
+#endif
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
