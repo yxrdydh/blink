@@ -30,6 +30,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import "SessionParameters.h"
 
 @interface MCPSessionParameters: SessionParameters
