@@ -649,7 +649,11 @@ cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, u_int len)
 			   len, iv))
 			       return SSH_ERR_LIBCRYPTO_ERROR;
 		} else
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 			memcpy(iv, cc->evp->iv, len);
+#else
+      memcpy(iv, EVP_CIPHER_CTX_iv_noconst(cc->evp), len);
+#endif
 		break;
 #endif
 #ifdef WITH_SSH1
@@ -695,7 +699,11 @@ cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv)
 			    EVP_CTRL_GCM_SET_IV_FIXED, -1, (void *)iv))
 				return SSH_ERR_LIBCRYPTO_ERROR;
 		} else
-			memcpy(cc->evp->iv, iv, evplen);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+      memcpy(cc->evp->iv, iv, evplen);
+#else
+      memcpy(EVP_CIPHER_CTX_iv_noconst(cc->evp), iv, evplen);
+#endif
 		break;
 #endif
 #ifdef WITH_SSH1
@@ -709,9 +717,14 @@ cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv)
 }
 
 #ifdef WITH_OPENSSL
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define EVP_X_STATE(evp)	(evp)->cipher_data
 #define EVP_X_STATE_LEN(evp)	(evp)->cipher->ctx_size
-#endif
+#else
+#define EVP_X_STATE(evp)  EVP_CIPHER_CTX_get_cipher_data(evp)
+#define EVP_X_STATE_LEN(evp)  EVP_CIPHER_impl_ctx_size(EVP_CIPHER_CTX_cipher(evp))
+#endif // OPENSSL_VERSION_NUMBER < 0x10100000L
+#endif // WITH_OPENSSL
 
 int
 cipher_get_keycontext(const struct sshcipher_ctx *cc, u_char *dat)
