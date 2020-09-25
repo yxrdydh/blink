@@ -59,7 +59,6 @@
 		07F670751D05EEE200C0A53C /* Session.m in Sources */ = {isa = PBXBuildFile; fileRef = 07F6706C1D05EEE200C0A53C /* Session.m */; };
 		07F670761D05EEE200C0A53C /* SSHCopyIDSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 07F6706E1D05EEE200C0A53C /* SSHCopyIDSession.m */; };
 		07F670771D05EEE200C0A53C /* SSHSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 07F670701D05EEE200C0A53C /* SSHSession.m */; };
-		206A22CC251E6D9F00CC8ACE /* texlua52.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 206A22CB251E6D9F00CC8ACE /* texlua52.framework */; };
 		206A22CD251E6D9F00CC8ACE /* texlua52.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 206A22CB251E6D9F00CC8ACE /* texlua52.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		226887A122BFB44D00D187DA /* curl_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2A3F4E920690B71006BB305 /* curl_ios.framework */; };
 		226887A222BFB46E00D187DA /* ssh_cmd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2A3F4E620690B71006BB305 /* ssh_cmd.framework */; };
@@ -444,7 +443,6 @@
 		226887DD22C00CED00D187DA /* kpathsea.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = kpathsea.framework; sourceTree = "<group>"; };
 		226887DF22C00CED00D187DA /* bibtex.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = bibtex.framework; sourceTree = "<group>"; };
 		226ED5BD21C7FE0900A71A20 /* libpanel.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpanel.tbd; path = usr/lib/libpanel.tbd; sourceTree = SDKROOT; };
-		22988F4422C3F57D0093353D /* texlua53.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = texlua53.framework; sourceTree = "<group>"; };
 		22A949492067FD5E003A0666 /* files.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = files.framework; sourceTree = "<group>"; };
 		22A9494A2067FD5E003A0666 /* tar.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = tar.framework; sourceTree = "<group>"; };
 		22E0543321864FF1008ECC05 /* lua_ios.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = lua_ios.framework; sourceTree = "<group>"; };
@@ -846,7 +844,6 @@
 			isa = PBXGroup;
 			children = (
 				206A22CB251E6D9F00CC8ACE /* texlua52.framework */,
-				22988F4422C3F57D0093353D /* texlua53.framework */,
 				226887C022BFBA7000D187DA /* python3_ios.framework */,
 				226887C522BFBA7000D187DA /* pythonA.framework */,
 				226887C422BFBA7000D187DA /* pythonB.framework */,
