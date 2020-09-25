@@ -2,7 +2,7 @@
 
 set -e
 
-DEPS_VERSION="1.2.0"
+DEPS_VERSION="2.4"
 
 GHROOT="https://github.com/blinksh"
 HHROOT="https://github.com/holzschu"
@@ -11,8 +11,8 @@ HHROOT="https://github.com/holzschu"
 
 cd "${BASH_SOURCE%/*}/Frameworks"
 echo "Downloading frameworks"
-curl -OL $GHROOT/external-deps/releases/download/v$DEPS_VERSION/frameworks.tar.gz
-( tar -xzf frameworks.tar.gz --strip 1 && rm frameworks.tar.gz ) || { echo "Frameworks failed to download"; exit 1; }
+curl -OL $HHROOT/ios_system/releases/download/v$DEPS_VERSION/release.tar.gz
+( tar -xzf release.tar.gz --strip 1 && rm release.tar.gz ) || { echo "Frameworks failed to download"; exit 1; }
 
 )
 
