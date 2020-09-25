@@ -59,7 +59,6 @@
 		07F670751D05EEE200C0A53C /* Session.m in Sources */ = {isa = PBXBuildFile; fileRef = 07F6706C1D05EEE200C0A53C /* Session.m */; };
 		07F670761D05EEE200C0A53C /* SSHCopyIDSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 07F6706E1D05EEE200C0A53C /* SSHCopyIDSession.m */; };
 		07F670771D05EEE200C0A53C /* SSHSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 07F670701D05EEE200C0A53C /* SSHSession.m */; };
-		206A22CD251E6D9F00CC8ACE /* texlua52.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 206A22CB251E6D9F00CC8ACE /* texlua52.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		226887A122BFB44D00D187DA /* curl_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2A3F4E920690B71006BB305 /* curl_ios.framework */; };
 		226887A222BFB46E00D187DA /* ssh_cmd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2A3F4E620690B71006BB305 /* ssh_cmd.framework */; };
 		226887A522BFB4EC00D187DA /* ios_system.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D2A3F4F320690BE6006BB305 /* ios_system.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -89,6 +88,7 @@
 		226887E222C00D0200D187DA /* luatex.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 226887D522C00CED00D187DA /* luatex.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		226887E322C00D0200D187DA /* pdftex.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 226887DC22C00CED00D187DA /* pdftex.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		226887F222C16A1C00D187DA /* kpathsea.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 226887DD22C00CED00D187DA /* kpathsea.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		22988F4522C3F5840093353D /* texlua53.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 22988F4422C3F57D0093353D /* texlua53.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		85047E71201F8A230090E974 /* RoundedToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 85047E70201F8A230090E974 /* RoundedToolbar.m */; };
 		85047E77201F9B0E0090E974 /* ControlPanel.m in Sources */ = {isa = PBXBuildFile; fileRef = 85047E76201F9B0E0090E974 /* ControlPanel.m */; };
 		85A34307200A837A009324F1 /* webfontloader.js in Resources */ = {isa = PBXBuildFile; fileRef = 85A34303200A837A009324F1 /* webfontloader.js */; };
@@ -274,6 +274,13 @@
 			remoteGlobalIDString = 14796A5F1C1CD9B500169D09;
 			remoteInfo = UICKeyChainStoreTests;
 		};
+		0732F1201D062DDB00AB5438 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0732F1101D062C9F00AB5438 /* UICKeyChainStore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 14796A461C1CD9A500169D09;
+			remoteInfo = UICKeyChainStore;
+		};
 		0747D63D2018182D00CF8F0C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0732F1101D062C9F00AB5438 /* UICKeyChainStore.xcodeproj */;
@@ -330,7 +337,6 @@
 				226887B422BFB77100D187DA /* tar.framework in Embed Frameworks */,
 				226887B522BFB7C000D187DA /* network_ios.framework in Embed Frameworks */,
 				226887AC22BFB5DB00D187DA /* shell.framework in Embed Frameworks */,
-				206A22CD251E6D9F00CC8ACE /* texlua52.framework in Embed Frameworks */,
 				226887B622BFB84F00D187DA /* text.framework in Embed Frameworks */,
 				226887BC22BFB92C00D187DA /* openblas.framework in Embed Frameworks */,
 				226887BD22BFB92C00D187DA /* freetype.framework in Embed Frameworks */,
@@ -346,6 +352,7 @@
 				226887E222C00D0200D187DA /* luatex.framework in Embed Frameworks */,
 				226887E322C00D0200D187DA /* pdftex.framework in Embed Frameworks */,
 				226887F222C16A1C00D187DA /* kpathsea.framework in Embed Frameworks */,
+				22988F4522C3F5840093353D /* texlua53.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -428,7 +435,6 @@
 		07F6706E1D05EEE200C0A53C /* SSHCopyIDSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSHCopyIDSession.m; sourceTree = "<group>"; };
 		07F6706F1D05EEE200C0A53C /* SSHSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSHSession.h; sourceTree = "<group>"; };
 		07F670701D05EEE200C0A53C /* SSHSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSHSession.m; sourceTree = "<group>"; };
-		206A22CB251E6D9F00CC8ACE /* texlua52.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = texlua52.framework; sourceTree = "<group>"; };
 		22035CD121F9DEFB007A0F60 /* freetype.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = freetype.framework; sourceTree = "<group>"; };
 		22035CD721F9DEFC007A0F60 /* harfbuzz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = harfbuzz.framework; sourceTree = "<group>"; };
 		226887BA22BFB91B00D187DA /* openblas.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = openblas.framework; sourceTree = "<group>"; };
@@ -443,6 +449,7 @@
 		226887DD22C00CED00D187DA /* kpathsea.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = kpathsea.framework; sourceTree = "<group>"; };
 		226887DF22C00CED00D187DA /* bibtex.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = bibtex.framework; sourceTree = "<group>"; };
 		226ED5BD21C7FE0900A71A20 /* libpanel.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpanel.tbd; path = usr/lib/libpanel.tbd; sourceTree = SDKROOT; };
+		22988F4422C3F57D0093353D /* texlua53.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = texlua53.framework; sourceTree = "<group>"; };
 		22A949492067FD5E003A0666 /* files.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = files.framework; sourceTree = "<group>"; };
 		22A9494A2067FD5E003A0666 /* tar.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = tar.framework; sourceTree = "<group>"; };
 		22E0543321864FF1008ECC05 /* lua_ios.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = lua_ios.framework; sourceTree = "<group>"; };
@@ -720,7 +727,6 @@
 				D2512AC520BD4C3000A80257 /* (null) in Frameworks */,
 				0732F1291D06324200AB5438 /* libcurses.tbd in Frameworks */,
 				0732F1271D06323A00AB5438 /* libz.tbd in Frameworks */,
-				206A22CC251E6D9F00CC8ACE /* texlua52.framework in Frameworks */,
 				D2A3F4F920690CDF006BB305 /* ios_system.framework in Frameworks */,
 				076FBD521DB6BE1D00F6D997 /* libprotobuf.a in Frameworks */,
 				0732F11E1D062DDB00AB5438 /* UICKeyChainStore.framework in Frameworks */,
@@ -843,7 +849,7 @@
 		0732F04F1D062BB300AB5438 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				206A22CB251E6D9F00CC8ACE /* texlua52.framework */,
+				22988F4422C3F57D0093353D /* texlua53.framework */,
 				226887C022BFBA7000D187DA /* python3_ios.framework */,
 				226887C522BFBA7000D187DA /* pythonA.framework */,
 				226887C422BFBA7000D187DA /* pythonB.framework */,
@@ -1466,6 +1472,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				0732F1211D062DDB00AB5438 /* PBXTargetDependency */,
 				D24AFD5B222410E700CFD3C1 /* PBXTargetDependency */,
 			);
 			name = Blink;
@@ -1503,7 +1510,7 @@
 				TargetAttributes = {
 					EA0BA18A1C0CC57B00719C1A = {
 						CreatedOnToolsVersion = 7.1.1;
-						DevelopmentTeam = VG8Z23C8YL;
+						DevelopmentTeam = 2JF8C9TSSA;
 						LastSwiftMigration = 0830;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
@@ -1523,6 +1530,7 @@
 					};
 					EA0BA1A31C0CC57B00719C1A = {
 						CreatedOnToolsVersion = 7.1.1;
+						DevelopmentTeam = 2JF8C9TSSA;
 						LastSwiftMigration = 0800;
 						TestTargetID = EA0BA18A1C0CC57B00719C1A;
 					};
@@ -1855,6 +1863,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		0732F1211D062DDB00AB5438 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = UICKeyChainStore;
+			targetProxy = 0732F1201D062DDB00AB5438 /* PBXContainerItemProxy */;
+		};
 		D24AFD5B222410E700CFD3C1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "MBProgressHUD Framework";
@@ -2009,7 +2022,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = VG8Z23C8YL;
+				DEVELOPMENT_TEAM = 2JF8C9TSSA;
 				ENABLE_BITCODE = NO;
 				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2031,7 +2044,7 @@
 				);
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = "Nicolas-Holzschuch-blinkshell";
+				PRODUCT_BUNDLE_IDENTIFIER = yxrdydh;
 				PRODUCT_NAME = Blink;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				RUN_CLANG_STATIC_ANALYZER = YES;
@@ -2049,7 +2062,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = VG8Z23C8YL;
+				DEVELOPMENT_TEAM = 2JF8C9TSSA;
 				ENABLE_BITCODE = NO;
 				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2068,7 +2081,7 @@
 				);
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = "Nicolas-Holzschuch-blinkshell";
+				PRODUCT_BUNDLE_IDENTIFIER = yxrdydh;
 				PRODUCT_NAME = Blink;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_STYLE = "non-global";
@@ -2080,6 +2093,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				DEVELOPMENT_TEAM = 2JF8C9TSSA;
 				INFOPLIST_FILE = BlinkUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Carlos.BlinkUITests;
@@ -2094,6 +2109,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				DEVELOPMENT_TEAM = 2JF8C9TSSA;
 				INFOPLIST_FILE = BlinkUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Carlos.BlinkUITests;
